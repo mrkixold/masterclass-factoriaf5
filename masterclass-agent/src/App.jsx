@@ -1,48 +1,69 @@
-// import React, { useState } from 'react';
-// import './App.css';
-// import GetOpenAIResponse from '../controller/openAiController';
+import React, { useState } from 'react';
+import './App.css';
 
-// function App() {
-//   const [character, setCharacter] = useState('Albert Einstein');
-//   const [task, setTask] = useState('');
-//   const [response, setResponse] = useState('');
+function App() {
+  const [character, setCharacter] = useState('Albert Einstein');
+  const [task, setTask] = useState('');
+  const [messages, setMessages] = useState([]);
 
-//   const characterPrompts = {
-//     'Albert Einstein': 'Eres Albert Einstein. Respondes con curiosidad científica, usando analogías simples para explicar conceptos complejos. Eres amable, reflexivo y haces referencias a la relatividad.',
-//     'Frida Kahlo': 'Eres Frida Kahlo. Hablas con pasión sobre el arte, la vida y el dolor. Tus respuestas son poéticas y profundas.',
-//     'Nelson Mandela': 'Eres Nelson Mandela. Hablas con sabiduría, esperanza y compromiso con la justicia social.'
-//   };
+  const characterPrompts = {
+    'Albert Einstein': 'Eres Albert Einstein. Respondes con curiosidad científica, usando analogías simples para explicar conceptos complejos. Eres amable, reflexivo y haces referencias a la relatividad.',
+    'Frida Kahlo': 'Eres Frida Kahlo. Hablas con pasión sobre el arte, la vida y el dolor. Tus respuestas son poéticas y profundas.',
+    'Nelson Mandela': 'Eres Nelson Mandela. Hablas con sabiduría, esperanza y compromiso con la justicia social.'
+  };
 
-//   const GetOpenAIPromptResponse = async () => {
-//     const characterPrompt = characterPrompts[character];
+  const handleSubmit = async () => {
+    if (!task.trim()) return;
 
-//     const data = await GetOpenAIResponse(characterPrompt);
+    const characterPrompt = characterPrompts[character];
 
-//     setResponse(data.response);
-//   };
+    // Add user message
+    setMessages(prev => [...prev, { sender: 'user', text: task }]);
 
-//   return (
-//     <div className="App">
-//       <h1>Agente con Personalidad Histórica</h1>
-//       <label>
-//         Selecciona un personaje:
-//         <select value={character} onChange={(e) => setCharacter(e.target.value)}>
-//           {Object.keys(characterPrompts).map((name) => (
-//             <option key={name} value={name}>{name}</option>
-//           ))}
-//         </select>
-//       </label>
-//       <br />
-//       <label>
-//         Escribe una tarea o pregunta:
-//         <input type="text" value={task} onChange={(e) => setTask(e.target.value)} />
-//       </label>
-//       <br />
-//       <button onClick={GetOpenAIPromptResponse}>Enviar al agente</button>
-//       <h2>Respuesta del agente:</h2>
-//       <pre>{response}</pre>
-//     </div>
-//   );
-// }
+    const res = await fetch('http://localhost:3001/agent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ characterPrompt, task })
+    });
 
-// export default App;
+    const data = await res.json();
+
+    // Add agent response
+    setMessages(prev => [...prev, { sender: 'agent', text: data.response }]);
+    setTask('');
+  };
+
+  return (
+    <div className="App">
+      <header className="App-header">
+        <h1>Cucumber</h1>
+      </header>
+      <div className="chat-container">
+        <div className="chat-box">
+          {messages.map((msg, index) => (
+            <div key={index} className={`message ${msg.sender}`}>
+              {msg.text}
+            </div>
+          ))}
+        </div>
+        <div className="input-area">
+          <select value={character} onChange={(e) => setCharacter(e.target.value)}>
+            {Object.keys(characterPrompts).map((name) => (
+              <option key={name} value={name}>{name}</option>
+            ))}
+          </select>
+          <input
+            type="text"
+            value={task}
+            onChange={(e) => setTask(e.target.value)}
+            placeholder="Escribe tu mensaje..."
+            onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
+          />
+          <button onClick={handleSubmit}>Enviar</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default App;
