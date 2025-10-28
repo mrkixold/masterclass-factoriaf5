@@ -36,7 +36,7 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <h1>Cucumber</h1>
+        <h1>Super Agent App</h1>
       </header>
       <div className="chat-container">
         <div className="chat-box">
